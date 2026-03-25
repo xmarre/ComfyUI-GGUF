@@ -100,8 +100,14 @@ class GGUFModelPatcher(GGUFModelPatcherBase):
         if not self.mmap_released:
             self.named_modules_to_munmap = dict(self.model.named_modules())
 
-        # always call `patch_weight_to_device` even for lowvram
-        super().load(*args, force_patch_weights=True, **kwargs)
+        # Legacy GGUF patchers force patch_weight_to_device even in lowvram mode so
+        # quantized patched weights get materialized through the GGUF override.
+        # Dynamic patchers explicitly reject force_patch_weights at load time.
+        if self.is_dynamic():
+            super().load(*args, force_patch_weights=force_patch_weights, **kwargs)
+        else:
+            # always call `patch_weight_to_device` even for lowvram
+            super().load(*args, force_patch_weights=True, **kwargs)
 
         # make sure nothing stays linked to mmap after first load
         if not self.mmap_released:
