@@ -32,7 +32,14 @@ def update_folder_names_and_paths(key, targets=[]):
 update_folder_names_and_paths("unet_gguf", ["diffusion_models", "unet"])
 update_folder_names_and_paths("clip_gguf", ["text_encoders", "clip"])
 
-class GGUFModelPatcher(comfy.model_patcher.ModelPatcher):
+GGUFModelPatcherBase = getattr(
+    comfy.model_patcher,
+    "CoreModelPatcher",
+    comfy.model_patcher.ModelPatcher,
+)
+
+
+class GGUFModelPatcher(GGUFModelPatcherBase):
     patch_on_device = False
 
     def patch_weight_to_device(self, key, device_to=None, inplace_update=False):
